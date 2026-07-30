@@ -1,17 +1,14 @@
-from sqlalchemy.orm import Session
-
-from app.models.tasks import Task
-from app.schemas.tasks import TaskCreate
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 
-def create_task(db: Session, task_data: TaskCreate) -> Task:
-    task = Task(
-        title=task_data.title,
-        description=task_data.description,
-    )
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
 
-    db.add(task)
-    db.commit()
-    db.refresh(task)
 
-    return task
+class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    email: EmailStr
+    is_active: bool
