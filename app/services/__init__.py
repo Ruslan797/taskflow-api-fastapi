@@ -1,6 +1,11 @@
-from app.services import subtask_service, task_service
+from app.services import (
+    subtask_service,
+    task_service,
+    user_service,
+)
 
 __all__ = [
-    "task_service",
     "subtask_service",
+    "task_service",
+    "user_service",
 ]

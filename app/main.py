@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 
-from app.routers import health, subtasks, tasks
+from app.routers import auth, health, subtasks, tasks
 
 
 app = FastAPI(
@@ -11,6 +11,7 @@ app = FastAPI(
 
 
 app.include_router(health.router)
+app.include_router(auth.router)
 app.include_router(tasks.router)
 app.include_router(subtasks.router)
 
