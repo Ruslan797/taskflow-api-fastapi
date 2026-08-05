@@ -15,7 +15,12 @@ from app.services.user_service import (
     create_user,
 )
 
-from app.core.auth import create_access_token
+from app.core.auth import (
+    create_access_token,
+    get_current_user,
+)
+
+from app.models.users import User
 
 
 router = APIRouter(
@@ -73,3 +78,12 @@ def login(
     return Token(
         access_token=access_token,
     )
+
+@router.get(
+    "/me",
+    response_model=UserResponse,
+)
+def read_current_user(
+    current_user: User = Depends(get_current_user),
+) -> UserResponse:
+    return current_user
