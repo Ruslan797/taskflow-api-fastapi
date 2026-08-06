@@ -9,13 +9,22 @@ def get_task(
     db: Session,
     task_id: int,
 ) -> Task | None:
-    statement = select(Task).where(Task.id == task_id)
+    statement = select(Task).where(
+        Task.id == task_id,
+    )
 
     return db.scalar(statement)
 
 
-def get_tasks(db: Session) -> list[Task]:
-    statement = select(Task).order_by(Task.id)
+def get_tasks(
+    db: Session,
+    owner_id: int,
+) -> list[Task]:
+    statement = (
+        select(Task)
+        .where(Task.owner_id == owner_id)
+        .order_by(Task.id)
+    )
 
     return list(db.scalars(statement).all())
 
@@ -23,10 +32,12 @@ def get_tasks(db: Session) -> list[Task]:
 def create_task(
     db: Session,
     task_data: TaskCreate,
+    owner_id: int,
 ) -> Task:
     task = Task(
         title=task_data.title,
         description=task_data.description,
+        owner_id=owner_id,
     )
 
     db.add(task)
@@ -57,6 +68,7 @@ def update_task(
     db.refresh(task)
 
     return task
+
 
 def delete_task(
     db: Session,
