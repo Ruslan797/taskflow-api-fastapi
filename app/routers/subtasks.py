@@ -1,7 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 
+from app.core.dependencies import get_current_task
 from app.database.db import get_db
+from app.models.tasks import Task
 from app.schemas import (
     SubtaskCreate,
     SubtaskResponse,
@@ -9,23 +11,26 @@ from app.schemas import (
 )
 from app.services import subtask_service
 
+
+from app.core.auth import get_current_user
+from app.models.users import User
+
 router = APIRouter(
     prefix="/tasks/{task_id}/subtasks",
     tags=["Subtasks"],
 )
-
 
 @router.get(
     "",
     response_model=list[SubtaskResponse],
 )
 def get_subtasks(
-    task_id: int,
+    current_task: Task = Depends(get_current_task),
     db: Session = Depends(get_db),
 ) -> list[SubtaskResponse]:
     return subtask_service.get_subtasks(
         db,
-        task_id,
+        current_task.id,
     )
 
 
@@ -34,13 +39,13 @@ def get_subtasks(
     response_model=SubtaskResponse,
 )
 def get_subtask(
-    task_id: int,
     subtask_id: int,
+    current_task: Task = Depends(get_current_task),
     db: Session = Depends(get_db),
 ) -> SubtaskResponse:
     subtask = subtask_service.get_subtask(
         db,
-        task_id,
+        current_task.id,
         subtask_id,
     )
 
@@ -52,20 +57,19 @@ def get_subtask(
 
     return subtask
 
-
 @router.post(
     "",
     response_model=SubtaskResponse,
     status_code=status.HTTP_201_CREATED,
 )
 def create_subtask(
-    task_id: int,
     subtask_data: SubtaskCreate,
+    current_task: Task = Depends(get_current_task),
     db: Session = Depends(get_db),
 ) -> SubtaskResponse:
     subtask = subtask_service.create_subtask(
         db,
-        task_id,
+        current_task.id,
         subtask_data,
     )
 
@@ -83,14 +87,14 @@ def create_subtask(
     response_model=SubtaskResponse,
 )
 def update_subtask(
-    task_id: int,
     subtask_id: int,
     subtask_data: SubtaskUpdate,
+    current_task: Task = Depends(get_current_task),
     db: Session = Depends(get_db),
 ) -> SubtaskResponse:
     subtask = subtask_service.update_subtask(
         db,
-        task_id,
+        current_task.id,
         subtask_id,
         subtask_data,
     )
@@ -109,13 +113,13 @@ def update_subtask(
     status_code=status.HTTP_204_NO_CONTENT,
 )
 def delete_subtask(
-    task_id: int,
     subtask_id: int,
+    current_task: Task = Depends(get_current_task),
     db: Session = Depends(get_db),
 ) -> None:
     deleted = subtask_service.delete_subtask(
         db,
-        task_id,
+        current_task.id,
         subtask_id,
     )
 

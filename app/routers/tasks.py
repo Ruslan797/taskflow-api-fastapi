@@ -8,6 +8,9 @@ from app.services import task_service
 from app.core.auth import get_current_user
 from app.models.users import User
 
+from app.core.dependencies import get_current_task
+from app.models.tasks import Task
+
 router = APIRouter(
     prefix="/tasks",
     tags=["Tasks"],
@@ -33,26 +36,9 @@ def get_tasks(
     response_model=TaskResponse,
 )
 def get_task(
-    task_id: int,
-    db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_task: Task = Depends(get_current_task),
 ) -> TaskResponse:
-
-    task = task_service.get_task(
-        db,
-        task_id,
-)
-
-    if (
-        task is None
-        or task.owner_id != current_user.id
-    ):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Task not found",
-        )
-
-    return task
+    return current_task
 
 
 @router.post(
@@ -77,33 +63,20 @@ def create_task(
     response_model=TaskResponse,
 )
 def update_task(
-    task_id: int,
     task_data: TaskUpdate,
+    current_task: Task = Depends(get_current_task),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
 ) -> TaskResponse:
-
-    task = task_service.get_task(
-    db,
-    task_id,
-)
-    if (
-        task is None
-        or task.owner_id != current_user.id
-):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Task not found",
-    )
 
     task = task_service.update_task(
         db,
-        task_id,
+        current_task.id,
         task_data,
     )
 
     return task
 
+    
 
 @router.delete(
     "/{task_id}",
@@ -111,28 +84,12 @@ def update_task(
 )
 
 def delete_task(
-    task_id: int,
+    current_task: Task = Depends(get_current_task),
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
 ) -> None:
 
-    task = task_service.get_task(
-        db,
-        task_id,
-)
-
-    if (
-        task is None
-        or task.owner_id != current_user.id
-):
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Task not found",
-    )
-
     task_service.delete_task(
-        db,
-        task_id,
-    )
-
+    db,
+    current_task.id,
+)
     
