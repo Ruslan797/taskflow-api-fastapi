@@ -1,31 +1,67 @@
 # TaskFlow API
 
-TaskFlow API is a REST API for managing tasks and subtasks.
+TaskFlow API is a production-style REST API for task management built with **FastAPI**.
 
-The project is built with FastAPI, PostgreSQL, SQLAlchemy 2.0, Pydantic v2, Alembic, and Docker.
+The project is designed as a portfolio backend application demonstrating modern backend development practices, including layered architecture, JWT authentication, authorization, dependency injection, and PostgreSQL integration.
 
-## Features
+---
 
-- Create, read, update, and delete tasks
-- Create, read, update, and delete subtasks
-- One-to-many relationship between tasks and subtasks
-- PostgreSQL database
-- Database migrations with Alembic
-- Request validation and response serialization with Pydantic
-- Service-layer architecture
-- Automatic API documentation with Swagger UI
+# Features
 
-## Tech Stack
+## Authentication
 
-- Python
+- User registration
+- User login
+- JWT authentication
+- Password hashing with bcrypt
+- Protected API endpoints
+
+## Authorization
+
+- Users can access only their own tasks
+- Users can access only their own subtasks
+- Authorization implemented with reusable FastAPI dependencies
+
+## Tasks
+
+- Create task
+- Get all user tasks
+- Get task by ID
+- Update task
+- Delete task
+
+## Subtasks
+
+- Create subtask
+- Get all subtasks
+- Get subtask by ID
+- Update subtask
+- Delete subtask
+
+## Database
+
+- PostgreSQL
+- SQLAlchemy 2.0 ORM
+- Alembic migrations
+
+---
+
+# Tech Stack
+
+- Python 3.13
 - FastAPI
 - PostgreSQL
 - SQLAlchemy 2.0
 - Alembic
 - Pydantic v2
+- JWT
+- Passlib (bcrypt)
 - Docker
+- Uvicorn
 
-## Project Structure
+---
+
+# Project Structure
 
 ```text
 app/
@@ -42,29 +78,44 @@ alembic/
 └── env.py
 ```
 
-## API Endpoints
+---
 
-### Tasks
+# API Endpoints
 
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/tasks` | Create a task |
-| GET | `/tasks` | Get all tasks |
-| GET | `/tasks/{task_id}` | Get a task |
-| PATCH | `/tasks/{task_id}` | Update a task |
-| DELETE | `/tasks/{task_id}` | Delete a task |
+## Authentication
 
-### Subtasks
+| Method | Endpoint |
+|--------|----------|
+| POST | `/auth/register` |
+| POST | `/auth/login` |
 
-| Method | Endpoint | Description |
-|---|---|---|
-| POST | `/tasks/{task_id}/subtasks` | Create a subtask |
-| GET | `/tasks/{task_id}/subtasks` | Get all subtasks for a task |
-| GET | `/tasks/{task_id}/subtasks/{subtask_id}` | Get a subtask |
-| PATCH | `/tasks/{task_id}/subtasks/{subtask_id}` | Update a subtask |
-| DELETE | `/tasks/{task_id}/subtasks/{subtask_id}` | Delete a subtask |
+---
 
-## Local Installation
+## Tasks
+
+| Method | Endpoint |
+|--------|----------|
+| POST | `/tasks` |
+| GET | `/tasks` |
+| GET | `/tasks/{task_id}` |
+| PATCH | `/tasks/{task_id}` |
+| DELETE | `/tasks/{task_id}` |
+
+---
+
+## Subtasks
+
+| Method | Endpoint |
+|--------|----------|
+| POST | `/tasks/{task_id}/subtasks` |
+| GET | `/tasks/{task_id}/subtasks` |
+| GET | `/tasks/{task_id}/subtasks/{subtask_id}` |
+| PATCH | `/tasks/{task_id}/subtasks/{subtask_id}` |
+| DELETE | `/tasks/{task_id}/subtasks/{subtask_id}` |
+
+---
+
+# Local Installation
 
 Clone the repository:
 
@@ -73,7 +124,7 @@ git clone git@github.com:Ruslan797/taskflow-api-fastapi.git
 cd taskflow-api-fastapi
 ```
 
-Create and activate a virtual environment:
+Create a virtual environment:
 
 ```bash
 python -m venv .venv
@@ -91,19 +142,27 @@ Install dependencies:
 pip install -r requirements.txt
 ```
 
-## Environment Variables
+---
 
-Create a `.env` file in the project root.
+# Environment Variables
+
+Create a `.env` file.
 
 Example:
 
 ```env
 DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/taskflow
+
+SECRET_KEY=your_secret_key
+
+ALGORITHM=HS256
+
+ACCESS_TOKEN_EXPIRE_MINUTES=30
 ```
 
-Do not commit the real `.env` file.
+---
 
-## Database
+# Database
 
 Start PostgreSQL:
 
@@ -111,47 +170,91 @@ Start PostgreSQL:
 docker compose up -d
 ```
 
-Apply database migrations:
+Run migrations:
 
 ```bash
 alembic upgrade head
 ```
 
-## Run the Application
+---
+
+# Run
 
 ```bash
 uvicorn app.main:app --reload
 ```
 
-The API will be available at:
+Application:
 
-```text
+```
 http://127.0.0.1:8000
 ```
 
-Swagger UI:
+Swagger:
 
-```text
+```
 http://127.0.0.1:8000/docs
 ```
 
 ReDoc:
 
-```text
+```
 http://127.0.0.1:8000/redoc
 ```
 
-## Development Status
+---
 
-The current version includes task and subtask management.
+# Architecture
 
-Planned features:
+Current architecture:
 
-- User authentication
-- JWT access tokens
+- Router Layer
+- Service Layer
+- Dependency Injection
+- SQLAlchemy ORM
+- JWT Authentication
+- Authorization Dependencies
+
+---
+
+# Current Status
+
+Implemented:
+
+- JWT Authentication
+- User Registration
+- User Login
+- Task CRUD
+- Subtask CRUD
+- Ownership Authorization
+- Dependency Injection Refactoring
+- Alembic Migrations
+- PostgreSQL Integration
+
+---
+
+# Roadmap
+
+Planned improvements:
+
+- Repository Layer
+- Generic CRUD Repository
+- Pagination
+- Filtering
+- Sorting
 - Projects
-- Task ownership
-- Filtering and pagination
-- Automated tests
-- CI/CD
-- Production deployment
+- Tags
+- Docker Production Setup
+- Automated Testing (Pytest)
+- GitHub Actions (CI/CD)
+- Logging
+- Redis
+- Background Tasks
+- Celery
+- API Versioning
+
+---
+
+# License
+
+This project is created for educational and portfolio purposes.
