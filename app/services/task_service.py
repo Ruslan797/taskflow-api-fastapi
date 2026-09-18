@@ -59,10 +59,7 @@ def update_task(
     for field, value in update_data.items():
         setattr(task, field, value)
 
-    db.commit()
-    db.refresh(task)
-
-    return task
+    return task_repository.save_task(db, task)
 
 
 def delete_task(
@@ -74,7 +71,6 @@ def delete_task(
     if task is None:
         return False
 
-    db.delete(task)
-    db.commit()
+    task_repository.delete_task(db, task)
 
     return True

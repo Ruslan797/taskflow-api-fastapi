@@ -39,3 +39,21 @@ def create_task(
     db.refresh(task)
 
     return task
+
+
+def save_task(
+    db: Session,
+    task: Task,
+) -> Task:
+    db.commit()
+    db.refresh(task)
+
+    return task
+
+
+def delete_task(
+    db: Session,
+    task: Task,
+) -> None:
+    db.delete(task)
+    db.commit()
