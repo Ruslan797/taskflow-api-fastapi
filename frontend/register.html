@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="de">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registrierung | IT-Service Hamburg · Norderstedt</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <h1>Konto erstellen</h1>
+    <p>Registrieren Sie sich für unseren IT-Service.</p>
+
+    <div class="register-content">
+
+    <img
+        class="register-image"
+        src="images/OfficeHamburg.png"
+        alt="IT-Service Hamburg"
+    >
+
+    <form id="register-form">
+
+    <label for="register-email">E-Mail</label>
+
+    <input
+        type="email"
+        id="register-email"
+        name="email"
+        required
+    >
+
+    <label for="register-password">Passwort</label>
+
+    <input
+        type="password"
+        id="register-password"
+        name="password"
+        minlength="8"
+        maxlength="128"
+        required
+    >
+
+    <button type="submit">Konto erstellen</button>
+
+    <p id="register-message"></p>
+
+    </form>
+
+    </div>
+
+    <script src="register.js"></script>
+
+</body>
+
+</html>
