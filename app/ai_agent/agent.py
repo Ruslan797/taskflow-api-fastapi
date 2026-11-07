@@ -13,6 +13,12 @@ from app.ai_agent.tools import (
     delete_task_tool,
 )
 
+from app.ai_agent.memory import (
+    get_conversation,
+    add_to_conversation,
+    MAX_HISTORY_MESSAGES,
+)
+
 logger = logging.getLogger("uvicorn.error")
 
 
@@ -98,7 +104,8 @@ task_tools = types.Tool(
     ]
 )
 
-MAX_STEPS = 5
+
+MAX_STEPS = 10
 SYSTEM_INSTRUCTION = """
 You are the AI task management assistant for TaskFlow.
 
@@ -112,19 +119,23 @@ Rules:
 - Do not invent task IDs or task data.
 """
 
+
 async def generate_response(
     message: str,
     db: Session,
     user_id: int,
 ) -> str:
-    contents = [
-        types.Content(
-            role="user",
-            parts=[
-                types.Part.from_text(text=message),
-            ],
-        )
-    ]
+    contents = get_conversation(user_id)[-MAX_HISTORY_MESSAGES:].copy()
+
+    user_content = types.Content(
+        role="user",
+        parts=[
+            types.Part.from_text(text=message),
+        ],
+    )
+
+    contents.append(user_content)
+
 
     for step in range(MAX_STEPS):
         logger.info("AI agent step %s", step)
@@ -233,8 +244,24 @@ async def generate_response(
                 "AI agent finished after step %s",
                 step,
             )
-            return response.text
 
-        return "I couldn't generate a response. Please try again."
+            model_content = types.Content(
+                role="model",
+                parts=[
+                    types.Part.from_text(text=response.text),
+                ],
+            )
+
+            add_to_conversation(
+                user_id,
+                user_content,
+            )
+
+            add_to_conversation(
+                user_id,
+                model_content,
+            )
+
+            return response.text
 
     return "The agent reached the maximum number of steps."
