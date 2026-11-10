@@ -136,6 +136,26 @@ async def generate_response(
 
     contents.append(user_content)
 
+    try:
+        token_info = await asyncio.wait_for(
+            gemini_client.aio.models.count_tokens(
+                model="gemini-3.6-flash",
+                contents=contents,
+            ),
+            timeout=10,
+        )
+
+        logger.info(
+            "AI agent conversation tokens: %s",
+            token_info.total_tokens,
+        )
+
+    except (asyncio.TimeoutError, ServerError) as error:
+        logger.warning(
+            "Could not count conversation tokens: %s",
+            error,
+        )
+
 
     for step in range(MAX_STEPS):
         logger.info("AI agent step %s", step)
@@ -164,6 +184,24 @@ async def generate_response(
                 "The AI service is temporarily unavailable. "
                 "Please try again shortly."
             )
+
+
+        if response.usage_metadata:
+            logger.info(
+                    "AI agent prompt tokens: %s",
+                    response.usage_metadata.prompt_token_count,
+                    )
+
+            logger.info(
+                    "AI agent output tokens: %s",
+                    response.usage_metadata.candidates_token_count,
+                    )
+
+            logger.info(
+                    "AI agent total tokens: %s",
+                    response.usage_metadata.total_token_count,
+                    )
+
 
         candidate = response.candidates[0]
         part = candidate.content.parts[0]
