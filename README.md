@@ -1,97 +1,220 @@
-# TaskFlow API
+# TaskFlow API — Python Backend with an AI Agent
 
-TaskFlow API is a production-style REST API for task management built with **FastAPI**.
+Portfolio backend application for task management, built with FastAPI,
+PostgreSQL and SQLAlchemy.
 
-The project is designed as a portfolio backend application demonstrating modern backend development practices, including layered architecture, JWT authentication, authorization, dependency injection, and PostgreSQL integration.
+The project combines authenticated REST endpoints with a Gemini-powered
+AI agent that manages the current user's tasks through backend services.
 
----
+## Project Status
 
-# Features
+Active development. The core task-management backend and initial
+AI-agent integration are implemented.
 
-## Authentication
+This is a portfolio project, not a production-ready service.
 
-- User registration
-- User login
-- JWT authentication
-- Password hashing with bcrypt
-- Protected API endpoints
+## Implemented Features
 
-## Authorization
+### Authentication and Authorization
 
-- Users can access only their own tasks
-- Users can access only their own subtasks
-- Authorization implemented with reusable FastAPI dependencies
+- User registration and login
+- JWT access tokens
+- Password hashing with pwdlib and Argon2
+- Authenticated user profile
+- Ownership checks for tasks and subtasks
 
-## Tasks
+### Task Management
 
-- Create task
-- Get all user tasks
-- Get task by ID
-- Update task
-- Delete task
+- Create, list, retrieve, update and delete tasks
+- Create, list, retrieve, update and delete subtasks
+- User-specific task lists
+- PostgreSQL persistence
+- Database migrations with Alembic
 
-## Subtasks
+### AI Agent
 
-- Create subtask
-- Get all subtasks
-- Get subtask by ID
-- Update subtask
-- Delete subtask
+- Authenticated chat endpoint: `POST /ai/chat`
+- Gemini integration through the Google Gen AI SDK
+- Tool calling for listing, creating, updating and deleting tasks
+- Reuse of existing backend services
+- Ownership checks in task update and delete tools
+- Limited in-memory conversation history per user
+- Request timeouts and a maximum number of agent steps
 
-## Database
+The AI integration is still being developed. Conversation history is
+not persistent and is not shared between application processes.
 
-- PostgreSQL
-- SQLAlchemy 2.0 ORM
-- Alembic migrations
+### Engineering
 
----
+- Router and service layers
+- Repository layer for task persistence
+- Dependency injection
+- Pydantic request and response schemas
+- Database health endpoint
+- Initial automated health-check tests
 
-# Tech Stack
+## Technology Stack
 
-- Python 3.13
+- Python
 - FastAPI
+- Pydantic v2
 - PostgreSQL
 - SQLAlchemy 2.0
 - Alembic
-- Pydantic v2
-- JWT
-- Passlib (bcrypt)
-- Docker
-- Uvicorn
+- JWT / python-jose
+- pwdlib / Argon2
+- Google Gen AI SDK
+- Docker Compose for local PostgreSQL
+- Pytest
 
----
+## Architecture
 
-# Project Structure
+REST requests follow this structure:
+
+`Router → Service → Repository / SQLAlchemy → PostgreSQL`
+
+The task service uses a dedicated repository. User and subtask services
+currently access SQLAlchemy directly.
+
+The AI agent calls backend tools that reuse the task service.
+The authenticated user's ID is supplied by the backend.
+
+## Project Structure
 
 ```text
 app/
-├── core/
-├── database/
-├── models/
-├── routers/
-├── schemas/
-├── services/
+├── ai_agent/       # Gemini client, agent loop, tools and chat endpoint
+├── core/           # Configuration, authentication and dependencies
+├── database/       # Database engine and sessions
+├── models/         # SQLAlchemy models
+├── repositories/   # Task persistence
+├── routers/        # REST endpoints
+├── schemas/        # Pydantic schemas
+├── services/       # Application logic
 └── main.py
 
-alembic/
-├── versions/
-└── env.py
+alembic/            # Database migrations
+documentation/     # Additional project documentation
+frontend/          # Frontend files
+tests/             # Initial health-check tests
+docker-compose.yml # Local PostgreSQL service
+requirements.txt
 ```
 
----
+Project-related models and a migration exist, but project management
+is not yet exposed through an implemented API.
 
-# API Endpoints
+## Local Setup
 
-## Authentication
+### Prerequisites
 
-| Method | Endpoint |
-|--------|----------|
-| POST | `/auth/register` |
-| POST | `/auth/login` |
+- Python with virtual environment support
+- Docker with Docker Compose
+- A Gemini API key
+- An OpenAI API key while the current client initialization requires it
 
----
+The current agent uses Gemini. An OpenAI client is also initialized
+by the application, although it is not used by the agent loop.
 
-## Tasks
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/Ruslan797/taskflow-api-fastapi.git
+cd taskflow-api-fastapi
+```
+
+### 2. Create a Virtual Environment
+
+```bash
+python -m venv .venv
+```
+
+Windows PowerShell:
+
+```powershell
+.\.venv\Scripts\Activate.ps1
+```
+
+Linux / macOS:
+
+```bash
+source .venv/bin/activate
+```
+
+### 3. Install Dependencies
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+For the current health-check tests, also install:
+
+```bash
+python -m pip install pytest httpx
+```
+
+### 4. Configure Environment Variables
+
+Create a `.env` file in the project root:
+
+```dotenv
+DATABASE_URL=postgresql+psycopg2://taskflow_user:taskflow_password@localhost:5432/taskflow_db
+SECRET_KEY=replace_with_a_long_random_secret
+GEMINI_API_KEY=your_gemini_api_key
+OPENAI_API_KEY=your_openai_api_key
+```
+
+Never commit real credentials or the `.env` file.
+
+The database credentials above match the local development
+Docker Compose configuration. Do not use them for production.
+
+The JWT algorithm and token lifetime are currently configured
+in `app/core/auth.py`.
+
+### 5. Start PostgreSQL
+
+```bash
+docker compose up -d
+```
+
+Docker Compose currently starts only PostgreSQL.
+The FastAPI application runs separately in the local Python environment.
+
+### 6. Apply Migrations
+
+```bash
+alembic upgrade head
+```
+
+### 7. Start the API
+
+```bash
+uvicorn app.main:app --reload
+```
+
+- API: http://127.0.0.1:8000
+- Swagger UI: http://127.0.0.1:8000/docs
+- ReDoc: http://127.0.0.1:8000/redoc
+
+## API Endpoints
+
+### Authentication
+
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| POST | `/auth/register` | Register a user |
+| POST | `/auth/login` | Log in and receive an access token |
+| GET | `/auth/me` | Retrieve the authenticated user |
+
+Login accepts a JSON body containing `email` and `password`.
+Protected endpoints require:
+
+```http
+Authorization: Bearer <access_token>
+```
+
+### Tasks
 
 | Method | Endpoint |
 |--------|----------|
@@ -101,9 +224,7 @@ alembic/
 | PATCH | `/tasks/{task_id}` |
 | DELETE | `/tasks/{task_id}` |
 
----
-
-## Subtasks
+### Subtasks
 
 | Method | Endpoint |
 |--------|----------|
@@ -113,148 +234,55 @@ alembic/
 | PATCH | `/tasks/{task_id}/subtasks/{subtask_id}` |
 | DELETE | `/tasks/{task_id}/subtasks/{subtask_id}` |
 
----
+### AI and Health
 
-# Local Installation
+| Method | Endpoint | Purpose |
+|--------|----------|---------|
+| POST | `/ai/chat` | Send a message to the task-management agent |
+| GET | `/health` | Check API and database availability |
 
-Clone the repository:
+Example AI request:
+
+```json
+{
+  "message": "Create a task called Prepare for my technical interview."
+}
+```
+
+Task data needed for tool calling may be sent to the external
+AI provider. Use synthetic data for public demonstrations.
+
+## Testing
+
+With the environment configured and PostgreSQL running:
 
 ```bash
-git clone git@github.com:Ruslan797/taskflow-api-fastapi.git
-cd taskflow-api-fastapi
+python -m pytest tests -v
 ```
 
-Create a virtual environment:
+Current automated tests cover:
 
-```bash
-python -m venv .venv
-```
+- Successful database health check
+- Database-unavailable response
 
-Windows PowerShell:
+Authentication, task CRUD, ownership isolation and AI-tool tests
+are planned.
 
-```powershell
-.venv\Scripts\Activate.ps1
-```
+## Next Steps
 
-Install dependencies:
+- Make AI configuration optional for non-AI backend usage
+- Improve handling of empty model responses and multiple tool calls
+- Validate tool arguments and handle tool execution errors
+- Add authentication, CRUD and ownership-isolation tests
+- Add mocked AI-agent tests
+- Add pagination and filtering
+- Complete the project-management API
+- Containerize the FastAPI application
+- Add continuous integration
+- Improve deployment configuration and operational logging
 
-```bash
-pip install -r requirements.txt
-```
+## Author
 
----
+Ruslan Buievskyi
 
-# Environment Variables
-
-Create a `.env` file.
-
-Example:
-
-```env
-DATABASE_URL=postgresql+psycopg://postgres:postgres@localhost:5432/taskflow
-
-SECRET_KEY=your_secret_key
-
-ALGORITHM=HS256
-
-ACCESS_TOKEN_EXPIRE_MINUTES=30
-```
-
----
-
-# Database
-
-Start PostgreSQL:
-
-```bash
-docker compose up -d
-```
-
-Run migrations:
-
-```bash
-alembic upgrade head
-```
-
----
-
-# Run
-
-```bash
-uvicorn app.main:app --reload
-```
-
-Application:
-
-```
-http://127.0.0.1:8000
-```
-
-Swagger:
-
-```
-http://127.0.0.1:8000/docs
-```
-
-ReDoc:
-
-```
-http://127.0.0.1:8000/redoc
-```
-
----
-
-# Architecture
-
-Current architecture:
-
-- Router Layer
-- Service Layer
-- Dependency Injection
-- SQLAlchemy ORM
-- JWT Authentication
-- Authorization Dependencies
-
----
-
-# Current Status
-
-Implemented:
-
-- JWT Authentication
-- User Registration
-- User Login
-- Task CRUD
-- Subtask CRUD
-- Ownership Authorization
-- Dependency Injection Refactoring
-- Alembic Migrations
-- PostgreSQL Integration
-
----
-
-# Roadmap
-
-Planned improvements:
-
-- Repository Layer
-- Generic CRUD Repository
-- Pagination
-- Filtering
-- Sorting
-- Projects
-- Tags
-- Docker Production Setup
-- Automated Testing (Pytest)
-- GitHub Actions (CI/CD)
-- Logging
-- Redis
-- Background Tasks
-- Celery
-- API Versioning
-
----
-
-# License
-
-This project is created for educational and portfolio purposes.
+GitHub: https://github.com/Ruslan797
