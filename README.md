@@ -44,6 +44,17 @@ This is a portfolio project, not a production-ready service.
 The AI integration is still being developed. Conversation history is
 not persistent and is not shared between application processes.
 
+#### Token Usage Logging
+
+- Counts conversation tokens before starting the agent loop
+- Logs input, output and total token usage for each model response
+- Continues processing if the preliminary token count times out
+  or encounters a server error
+
+Usage is currently logged per model call. Separate thinking-token
+logging and cumulative totals across all agent steps are not yet
+implemented.
+
 ### Engineering
 
 - Router and service layers
@@ -280,6 +291,8 @@ are planned.
 - Containerize the FastAPI application
 - Add continuous integration
 - Improve deployment configuration and operational logging
+
+
 
 ## Author
 
