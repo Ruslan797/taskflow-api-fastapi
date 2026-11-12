@@ -156,6 +156,8 @@ async def generate_response(
             error,
         )
 
+    total_request_tokens = 0
+
 
     for step in range(MAX_STEPS):
         logger.info("AI agent step %s", step)
@@ -187,6 +189,9 @@ async def generate_response(
 
 
         if response.usage_metadata:
+            step_tokens = response.usage_metadata.total_token_count or 0
+            total_request_tokens += step_tokens
+
             logger.info(
                     "AI agent prompt tokens: %s",
                     response.usage_metadata.prompt_token_count,
@@ -195,6 +200,11 @@ async def generate_response(
             logger.info(
                     "AI agent output tokens: %s",
                     response.usage_metadata.candidates_token_count,
+                    )
+
+            logger.info(
+                    "AI agent thinking tokens: %s",
+                    response.usage_metadata.thoughts_token_count,
                     )
 
             logger.info(
@@ -298,6 +308,11 @@ async def generate_response(
             add_to_conversation(
                 user_id,
                 model_content,
+            )
+
+            logger.info(
+                "AI agent request total tokens: %s",
+                total_request_tokens,
             )
 
             return response.text
